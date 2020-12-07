@@ -3,15 +3,12 @@ import argparse
 import csv
 import json
 import glob
-import numpy as np
 import tensorflow as tf
-import math
 
-from tensorflow.keras.preprocessing.image import load_img
-from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow import keras
 
 from model.model_description import create_model
+from objectnet_iterator import ObjectNetDataset
 
 parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
 parser.add_argument('images', metavar='images-dir',
@@ -33,32 +30,6 @@ args = parser.parse_args()
 assert (args.batch_size >= 1), "Batch size must be >= 1!"
 #convert outputs
 assert (args.convert_outputs_mode in (0,1)), "Convert outputs mode must be either 0 or 1!"
-
-class ObjectNetDataset(keras.utils.Sequence):
-    def __init__(self, image_path, batch_size):
-        self.filenames = glob.glob(args.images + "/*.png")
-        self.batch_size = batch_size
-
-    def __len__(self):
-        return math.ceil(len(self.filenames) / self.batch_size)
-
-    def __getitem__(self, idx):
-        batch_x = self.filenames[idx * self.batch_size:(idx + 1) * self.batch_size]
-
-        batch_img = []
-        for filename in batch_x:
-            img = load_img(filename, target_size=(224,224))
-            img_np = img_to_array(img)
-            print(img_np.shape)
-            exit()
-            batch_img.append(img_np)
-        return np.array(batch_img), batch_x
-
-
-#with open("input/answers/answers-test.json") as f:
-#    answers = json.load(f)
-#    train_labels = [answers[x.split('/')[-1]] for x in filenames]
-#train_labels = np.array(train_labels)
 
 # Create a basic model instance
 model = create_model()
@@ -113,10 +84,8 @@ def tfImageNetIDToObjectNetID(prediction_class):
     
 
 objectnet_predictions = evalModels()
-print("output_predictions", objectnet_predictions)
 with open(args.output_file, 'w') as csvOut:
     csvwriter = csv.writer(csvOut, delimiter=',')
     for row in objectnet_predictions:
         csvwriter.writerow(row)
 print("Done. Number of predictions: ", len(objectnet_predictions))
-
