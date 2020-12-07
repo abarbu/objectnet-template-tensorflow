@@ -9,19 +9,13 @@ from tensorflow import keras
 from model.model_description import create_model
 from objectnet_iterator import ObjectNetDataset
 
-#sanity
-from tensorflow.keras.applications.resnet50 import ResNet50
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
-
-
 parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
 parser.add_argument('images', metavar='images-dir',
                     help='path to dataset')
 parser.add_argument('output_file', metavar='output-file',
                     help='path to predictions output file')
-#parser.add_argument('model_checkpoint', metavar='model-checkpoint',
-#                    help='path to model checkpoint')#TODO uncomment
+parser.add_argument('model_checkpoint', metavar='model-checkpoint',
+                    help='path to model checkpoint')
 parser.add_argument('--batch_size', default=64, type=int, metavar='N',
                     help='mini-batch size (default: 64), this is the '
                          'batch size of each GPU on the current node when '
@@ -30,8 +24,8 @@ parser.add_argument('--convert_outputs_mode', default=1, type=int, metavar='N',
                     help="0: no conversion of prediction IDs, 1: convert from pytorch ImageNet prediction IDs to ObjectNet prediction IDs (default:1)")
 args = parser.parse_args()
 
-#assert (not os.path.exists(args.output_file)), "Output file: "+args.output_file+", already exists!"#TODO uncomment
-#assert (os.path.exists(os.path.dirname(args.output_file)) or os.path.dirname(args.output_file)==""), "Output file path: "+os.path.dirname(args.output_file)+", does not exist!"
+assert (not os.path.exists(args.output_file)), "Output file: "+args.output_file+", already exists!"
+assert (os.path.exists(os.path.dirname(args.output_file)) or os.path.dirname(args.output_file)==""), "Output file path: "+os.path.dirname(args.output_file)+", does not exist!"
 
 # batch batch_size
 assert (args.batch_size >= 1), "Batch size must be >= 1!"
@@ -49,12 +43,8 @@ def load_model():
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
     with strategy.scope():
         model = create_model()
-        #checkpoint_path = args.model_checkpoint
-        checkpoint_path = "resnet50_weights_tf_dim_ordering_tf_kernels.h5"#TODO hardcode
-        #model.load_weights(checkpoint_path)#TODO uncomment
-
-        #SANITY CHECK
-        model = ResNet50(weights=checkpoint_path)
+        checkpoint_path = args.model_checkpoint
+        model.load_weights(checkpoint_path)
 
         model.summary()
     return model
@@ -75,7 +65,6 @@ def evalModels():
     data_iter = ObjectNetDataset(args.images, args.batch_size)
 
     for img_batch, filenames in data_iter:
-        img_batch = preprocess_input(img_batch) #TODO this is for resnet only
         predictions = model.predict(img_batch, batch_size=args.batch_size)
 
         prediction_confidence, prediction_class = tf.math.top_k(predictions, 5)
