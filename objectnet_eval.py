@@ -21,17 +21,22 @@ parser.add_argument('images', metavar='images-dir',
                     help='path to dataset')
 parser.add_argument('output_file', metavar='output-file',
                     help='path to predictions output file')
+parser.add_argument('--batch_size', default=96, type=int, metavar='N',
+                    help='mini-batch size (default: 96), this is the '
+                         'batch size of each GPU on the current node when '
+                         'using Data Parallel or Distributed Data Parallel')
 parser.add_argument('--convert_outputs_mode', default=1, type=int, metavar='N',
                     help="0: no conversion of prediction IDs, 1: convert from pytorch ImageNet prediction IDs to ObjectNet prediction IDs (default:1)")
 args = parser.parse_args()
 
-
-filenames = glob.glob(args.images + "/*.png")
-
+# batch batch_size
+assert (args.batch_size >= 1), "Batch size must be >= 1!"
+#convert outputs
+assert (args.convert_outputs_mode in (0,1)), "Convert outputs mode must be either 0 or 1!"
 
 class ObjectNetDataset(keras.utils.Sequence):
-    def __init__(self, filenames, batch_size):
-        self.filenames = filenames
+    def __init__(self, image_path, batch_size):
+        self.filenames = glob.glob(args.images + "/*.png")
         self.batch_size = batch_size
 
     def __len__(self):
@@ -41,23 +46,23 @@ class ObjectNetDataset(keras.utils.Sequence):
         batch_x = self.filenames[idx * self.batch_size:(idx + 1) * self.batch_size]
 
         batch_img = []
+        print(batch_x)
         for filename in batch_x:
+            print(filename)
             img = load_img(filename, target_size=(224,224))
             img_np = img_to_array(img)
             batch_img.append(img_np)
         return np.array(batch_img), batch_x
 
-data_iter = ObjectNetDataset(filenames, 5)
 
-with open("input/answers/answers-test.json") as f:
-    answers = json.load(f)
-    train_labels = [answers[x.split('/')[-1]] for x in filenames]
-train_labels = np.array(train_labels)
+#with open("input/answers/answers-test.json") as f:
+#    answers = json.load(f)
+#    train_labels = [answers[x.split('/')[-1]] for x in filenames]
+#train_labels = np.array(train_labels)
 
 # Create a basic model instance
 model = create_model()
 
-# Display the model's architecture
 model.summary()
 checkpoint_path = "training_1/cp.ckpt"
 model.load_weights(checkpoint_path)
@@ -82,14 +87,6 @@ with open(mapping_file,"r") as f:
     # convert string keys to ints
     mapping = {int(k): v for k, v in mapping.items()}
 
-def tfImageNetIDToObjectNetID(prediction_class):
-    for i in range(len(prediction_class)):
-        if prediction_class[i] in mapping:
-            prediction_class[i] = mapping[prediction_class[i]]
-        else:
-            prediction_class[i] = -1
-
-    
 #model = vgg16.VGG16(weights='vgg16_weights_tf_dim_ordering_tf_kernels.h5')
 
 #filenames = glob.glob(args.images + "/*.png")
@@ -106,42 +103,37 @@ def evalModels():
 
     output_predictions = []
 
-    for img_batch, filenames in data_iter:
-        print(img_batch)
-        print(filenames)
-        img = load_img(filename, target_size=(224, 224))
-        img_np = img_to_array(img)
-        img_batch = np.expand_dims(img_np, axis=0)
-        img_batch_processed = vgg16.preprocess_input(img_batch.copy())
-        print("batch")
-        print(type(img_batch_processed))
-        predictions = model.predict(img_batch_processed)
+    data_iter = ObjectNetDataset(args.images, args.batch_size)
 
-        print(predictions.shape)
+    for img_batch, filenames in data_iter:
+        predictions = model.predict(img_batch, batch_size=args.batch_size)
+
         prediction_confidence, prediction_class = tf.math.top_k(predictions, 5)
         
-        prediction_confidence = prediction_confidence.numpy().flatten()
-        prediction_class = prediction_class.numpy().flatten()
+        prediction_confidence = prediction_confidence.numpy()
+        prediction_class = prediction_class.numpy()
 
-        print(prediction_confidence.shape)
-        print(prediction_confidence)
-        out = [filename.split("/")[-1]]
-        if args.convert_outputs_mode == 1:
-            tfImageNetIDToObjectNetID(prediction_class)
-        output_predictions.append(out + [val for pair in zip(prediction_class,prediction_confidence) for val in pair])
+        for i in range(len(filenames)):
+            out = [filenames[i].split("/")[-1]]
+            if args.convert_outputs_mode == 1:
+                tfImageNetIDToObjectNetID(prediction_class[i])
+            output_predictions.append(out + [val for pair in zip(prediction_class[i],prediction_confidence[i]) for val in pair])
     return output_predictions
+
+
+def tfImageNetIDToObjectNetID(prediction_class):
+    for i in range(len(prediction_class)):
+        if prediction_class[i] in mapping:
+            prediction_class[i] = mapping[prediction_class[i]]
+        else:
+            prediction_class[i] = -1
     
-def tfImagenetID2ObjectNetID(label):
-    if label_idx in mapping:
-      return mapping[label_idx]
-    else:
-      return -1
 
 objectnet_predictions = evalModels()
-print("output_predictions", output_predictions)
+print("output_predictions", objectnet_predictions)
 with open(args.output_file, 'w') as csvOut:
     csvwriter = csv.writer(csvOut, delimiter=',')
-    for row in output_predictions:
+    for row in objectnet_predictions:
         csvwriter.writerow(row)
 print("Done. Number of predictions: ", len(objectnet_predictions))
 
