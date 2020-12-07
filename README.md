@@ -6,3 +6,15 @@ If your model is built using PyTorch, a more comprehensive docker template along
 If you are not familiar with docker here are instructions on how to [install docker](https://docs.docker.com/install/), along with a [quick start guide](https://docs.docker.com/get-started/).
 
 To use this example see Section 2.5 of the [ObjectNet Challenge submission instructions](https://abarbu.github.io/objectnet-challenge-doc-ibm-dev/dockerfile-from-scratch.html)
+
+# Section 1: Example Code
+## 1.1 Requirements
+- python 3
+- tensorflow >= 2.3
+- cuda 10.1
+
+
+## 1.2 Code structure
+- `objectnet_eval.py` is the main entry point for running this example. It loads the pretrained weights, defined by `checkpoint_path`, for the model defined in `model/model_description.py`
+- `model/model_description.py` should be replaced with your own architecture
+- `objectnet_iterator` contains an example data loader 

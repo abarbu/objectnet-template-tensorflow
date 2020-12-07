@@ -32,11 +32,13 @@ assert (args.batch_size >= 1), "Batch size must be >= 1!"
 assert (args.convert_outputs_mode in (0,1)), "Convert outputs mode must be either 0 or 1!"
 
 # Create a basic model instance
-model = create_model()
-
-model.summary()
-checkpoint_path = "training_1/cp.ckpt"
-model.load_weights(checkpoint_path)
+strategy = tf.distribute.MirroredStrategy()
+print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+with strategy.scope():
+    model = create_model()
+    checkpoint_path = "training_1/cp.ckpt"
+    model.load_weights(checkpoint_path)
+    model.summary()
 
 mapping_file = "mapping_files/imagenet_pytorch_id_to_objectnet_id.json"
 with open(mapping_file,"r") as f:
