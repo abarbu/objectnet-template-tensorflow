@@ -32,12 +32,11 @@ class ObjectNetDataset(keras.utils.Sequence):
             width, height = img.size
             crop_width = max(width-224, 0)
             crop_height = max(height-224, 0)
-            cropArea = (crop_width//2, crop_height//2, width-crop_width//2, height-crop_height//2)
+            cropArea = (crop_width//2, crop_height//2, 224+crop_width//2, 224+crop_height//2)
             img = img.crop(cropArea) 
 
-            img = img.resize((224,224))
             img_np = img_to_array(img)
 
             batch_img.append(img_np)
-
-        return np.stack(batch_img, axis=0), batch_x
+        batch_img = np.stack(batch_img, axis=0)
+        return batch_img, batch_x
