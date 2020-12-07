@@ -7,12 +7,9 @@ import numpy as np
 import tensorflow as tf
 import math
 
-from tensorflow.keras.applications import vgg16
 from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.preprocessing.image import img_to_array
-
 from tensorflow import keras
-from tensorflow.keras.applications.imagenet_utils import decode_predictions
 
 from model.model_description import create_model
 
@@ -28,6 +25,9 @@ parser.add_argument('--batch_size', default=96, type=int, metavar='N',
 parser.add_argument('--convert_outputs_mode', default=1, type=int, metavar='N',
                     help="0: no conversion of prediction IDs, 1: convert from pytorch ImageNet prediction IDs to ObjectNet prediction IDs (default:1)")
 args = parser.parse_args()
+
+#assert (not os.path.exists(args.output_file)), "Output file: "+args.output_file+", already exists!"
+#assert (os.path.exists(os.path.dirname(args.output_file)) or os.path.dirname(args.output_file)==""), "Output file path: "+os.path.dirname(args.output_file)+", does not exist!"
 
 # batch batch_size
 assert (args.batch_size >= 1), "Batch size must be >= 1!"
@@ -46,11 +46,11 @@ class ObjectNetDataset(keras.utils.Sequence):
         batch_x = self.filenames[idx * self.batch_size:(idx + 1) * self.batch_size]
 
         batch_img = []
-        print(batch_x)
         for filename in batch_x:
-            print(filename)
             img = load_img(filename, target_size=(224,224))
             img_np = img_to_array(img)
+            print(img_np.shape)
+            exit()
             batch_img.append(img_np)
         return np.array(batch_img), batch_x
 
@@ -67,20 +67,6 @@ model.summary()
 checkpoint_path = "training_1/cp.ckpt"
 model.load_weights(checkpoint_path)
 
-#for filename in filenames:
-#    img = load_img(filename, target_size=(224, 224))
-#    img_np = img_to_array(img)
-#    train_images.append(img_np)
-#train_images =np.array(train_images)
-#
-#with open("input/answers/answers-test.json") as f:
-#    answers = json.load(f)
-#    train_labels = [answers[x.split('/')[-1]] for x in filenames]
-#train_labels = np.array(train_labels)
-
-#assert (not os.path.exists(args.output_file)), "Output file: "+args.output_file+", already exists!"
-#assert (os.path.exists(os.path.dirname(args.output_file)) or os.path.dirname(args.output_file)==""), "Output file path: "+os.path.dirname(args.output_file)+", does not exist!"
-
 mapping_file = "mapping_files/imagenet_pytorch_id_to_objectnet_id.json"
 with open(mapping_file,"r") as f:
     mapping = json.load(f)
@@ -88,9 +74,6 @@ with open(mapping_file,"r") as f:
     mapping = {int(k): v for k, v in mapping.items()}
 
 #model = vgg16.VGG16(weights='vgg16_weights_tf_dim_ordering_tf_kernels.h5')
-
-#filenames = glob.glob(args.images + "/*.png")
-#print("filenames", filenames)
 
 def evalModels():
     '''
