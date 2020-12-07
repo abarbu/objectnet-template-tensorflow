@@ -27,7 +27,7 @@ The easiest way to enable TensorFlow GPU support is to use [Docker](https://www.
 # Section 2: Building and testing your docker image
 
 You need:
-    - The ~Dockerfile~
+    - The `Dockerfile`
     - Your model definition and trained weights
 
 ## 2.1 Build your Docker image
