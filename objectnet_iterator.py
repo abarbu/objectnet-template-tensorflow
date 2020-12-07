@@ -20,7 +20,23 @@ class ObjectNetDataset(keras.utils.Sequence):
 
         batch_img = []
         for filename in batch_x:
-            img = load_img(filename, target_size=(224,224))
+            img = load_img(filename)
+
+            width, height = img.size
+
+            if width < height:
+                img = img.resize((224, int(height*(224/width))))
+            else:
+                img = img.resize((int(width*(224/height)), 224))
+            
+
+            crop_width = max(width-224, 0)
+            crop_height = max(height-224, 0)
+            cropArea = (crop_width//2, crop_height//2, width-crop_width//2, height-crop_height//2)
+            img = img.crop(cropArea) 
+
+            #img = img.resize((224,224))
             img_np = img_to_array(img)
+
             batch_img.append(img_np)
-        return np.array(batch_img), batch_x
+        return np.stack(batch_img, axis=0), batch_x

@@ -41,4 +41,4 @@ RUN pip install -r requirements.txt
 COPY . /workspace
 
 # Define the command to execute when the container is run
-ENTRYPOINT python objectnet_eval.py /input /output/predictions.csv
+ENTRYPOINT python objectnet_eval.py /input /output/predictions.csv /resnet50_weights_tf_dim_ordering_tf_kernels.h5
