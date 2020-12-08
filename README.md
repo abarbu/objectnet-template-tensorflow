@@ -27,8 +27,8 @@ The easiest way to enable TensorFlow GPU support is to use [Docker](https://www.
 This section contains commands specific to this starter code. For complete details, please see [Section 2 of these instructions](https://abarbu.github.io/objectnet-challenge-doc-ibm-dev/dockerfile-from-scratch.html).
 
 You need:
-    - The ~Dockerfile~
-    - Your model definition and trained weights
+- The `Dockerfile`
+- Your model definition and trained weights
 
 ## 2.1 Build your Docker image
 ```
