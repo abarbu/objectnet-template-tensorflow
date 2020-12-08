@@ -1,5 +1,5 @@
 # Overview
-This repository contains a boilerplate for those wishing to build a custom docker image for the [ObjectNet Challenge](https://eval.ai/web/challenges/challenge-page/726/overview). It assumes you have a custom model which you intend to submit for evaluation to the ObjectNet Challenge.
+This repository contains a boilerplate for those wishing to build a custom docker image for the [ObjectNet Challenge](https://eval.ai/web/challenges/challenge-page/726/overview). It assumes you have a custom model which you intend to submit for evaluation to the ObjectNet Challenge. This template contains starter code for [these instructions](https://abarbu.github.io/objectnet-challenge-doc-ibm-dev/dockerfile-from-scratch.html).
 
 If your model is built using PyTorch, a more comprehensive docker template along with instructions can be found at [Creating your Docker image from the PyTorch template](https://abarbu.github.io/objectnet-challenge-doc-ibm-dev/dockerfile-from-template.html).
 
@@ -22,9 +22,9 @@ The easiest way to enable TensorFlow GPU support is to use [Docker](https://www.
 - `objectnet_eval.py` is the main entry point for running this example. It loads the pretrained weights, defined by `model_checkpoint` path, for the model defined in `model/model_description.py`. Full help is available using `objectnet_eval.py --help`
 - `model/model_description.py` should be replaced with your own architecture
 - `objectnet_iterator.py` contains an example data loader 
-- `objectnet_train.py` contains some example training code
 
 # Section 2: Building and testing your docker image
+This section contains commands specific to this starter code. For complete details, please see [Section 2 of these instructions](https://abarbu.github.io/objectnet-challenge-doc-ibm-dev/dockerfile-from-scratch.html).
 
 You need:
     - The ~Dockerfile~
