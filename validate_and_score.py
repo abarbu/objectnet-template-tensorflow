@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import sys
 import csv
@@ -70,8 +68,6 @@ if __name__ == '__main__':
                     else:
                         pred.append(int(x))
             except Exception as e:
-                # not really happy about swallowing exception, how to dump it w/o the submitter seeing it??
-                # print(e, file=sys.stderr)
                 err_exit('Failure to convert predictions to integer indices')
             if not args.no_range_check:
                 for p in pred:
@@ -83,8 +79,6 @@ if __name__ == '__main__':
                 num5_correct += 1
             linecnt += 1
     except Exception as e:
-        # not really happy about swallowing exception, how to dump it w/o the submitter seeing it??
-        # print(e, file=sys.stderr)
         err_exit('Caught exception while parsing csv file: {}'.format(args.filename))
 
     results = { 'accuracy': 100.0 * num_correct / total,
@@ -95,3 +89,4 @@ if __name__ == '__main__':
     rval['prediction_file_status'] = 'VALIDATED'
     print(json.dumps(rval, indent=2, sort_keys=True))
     sys.exit(0)
+
