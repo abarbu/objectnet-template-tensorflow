@@ -11,7 +11,7 @@ These instructions are split into two sections:
     2. plug your own model into this example and test on a local machine.
 - *Section 2* which describes how to create a docker image ready to submit to the challenge.
 
-# Section 2: ObjectNet competition example model and code
+# Section 1: ObjectNet competition example model and code
 
 The following section provides example code and a baseline model for the ObjectNet Challenge. The code is structured such that most existing TensorFlow models can be plugged into the example with minimal code changes necessary.
 
