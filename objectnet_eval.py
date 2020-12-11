@@ -12,7 +12,7 @@ from model.data_transform_description import data_transform
 
 gpu_count = len(tf.config.list_physical_devices('GPU'))
 cpu_count = len(tf.config.list_physical_devices('CPU'))
-parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
+parser = argparse.ArgumentParser(description='Evaluate a TensorFlow model on ObjectNet images and output predictions to a CSV file.')
 parser.add_argument('images', metavar='images-dir',
                     help='path to dataset')
 parser.add_argument('output_file', metavar='output-file',
