@@ -6,7 +6,7 @@ import glob
 import tensorflow as tf
 
 from tensorflow import keras
-import model.model_description
+from model import model_description
 from objectnet_iterator import ObjectNetDataset
 
 parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
@@ -31,7 +31,7 @@ assert (os.path.exists(os.path.dirname(args.output_file)) or os.path.dirname(arg
 
 # model class name
 try:
-    getattr(model.model_description, args.model_class_name)
+    getattr(model_description, args.model_class_name)
 except AttributeError as e:
     print("Module: " + args.model_class_name + ", can not be found in model_description.py!")
     raise
@@ -39,7 +39,7 @@ except AttributeError as e:
 MODEL_CLASS_NAME = args.model_class_name
 
 try:
-    architecture = getattr(model.model_description, MODEL_CLASS_NAME)
+    architecture = getattr(model_description, MODEL_CLASS_NAME)
     architecture.create_model()
 except AttributeError as e:
     print("Module: " + args.model_class_name + ", must implement create_model() method!")
@@ -63,9 +63,9 @@ def load_model():
     strategy = tf.distribute.MirroredStrategy()
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
     with strategy.scope():
-        architecture = getattr(model.model_description, MODEL_CLASS_NAME)
+        architecture = getattr(model_description, MODEL_CLASS_NAME)
         model = architecture.create_model()
-        model.load_weights(checkpoint_path)
+        model.load_weights(args.model_checkpoint)
         model.summary()
     return model
 
@@ -83,6 +83,7 @@ def evalModels():
     data_iter = ObjectNetDataset(args.images, args.batch_size)
 
     for img_batch, filenames in data_iter:
+        model = load_model()
         predictions = model.predict(img_batch, batch_size=args.batch_size)
 
         prediction_confidence, prediction_class = tf.math.top_k(predictions, 5)

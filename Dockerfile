@@ -21,8 +21,13 @@ FROM tensorflow/tensorflow:${TENSORFLOW_VERSION}${GPU}
 ARG GPU
 ARG TENSORFLOW_VERSION
 
+ARG MODEL_CHECKPOINT
+ARG MODEL_CLASS_NAME
+ENV MODEL_CLASS_NAME ${MODEL_CLASS_NAME}
+ENV MODEL_PATH "/workspace/model/"${MODEL_CHECKPOINT}
 
 RUN echo "Building from tensorflow image: tensorflow/tensorflow:$TENSORFLOW_VERSION$GPU"
+RUN echo "Using pre-built model: $MODEL_PATH"
 
 # Add metadata
 LABEL maintainer="your-email-address"
