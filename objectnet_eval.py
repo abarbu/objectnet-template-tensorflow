@@ -10,6 +10,7 @@ from model import model_description
 from objectnet_iterator import ObjectNetDataset
 from model.data_transform_description import data_transform
 
+gpu_count = len(tf.config.list_physical_devices('GPU'))
 parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
 parser.add_argument('images', metavar='images-dir',
                     help='path to dataset')
@@ -19,6 +20,8 @@ parser.add_argument('model_class_name', metavar='model-class-name',
                     help='model class name in model_description.py')
 parser.add_argument('model_checkpoint', metavar='model-checkpoint',
                     help='path to model checkpoint')
+parser.add_argument('--gpus', default=gpu_count, type=int, metavar='N',
+                    help='number of GPUs to use')
 parser.add_argument('--batch_size', default=64, type=int, metavar='N',
                     help='mini-batch size (default: 64), this is the '
                          'batch size of each GPU on the current node when '
@@ -29,6 +32,10 @@ args = parser.parse_args()
 
 assert (not os.path.exists(args.output_file)), "Output file: "+args.output_file+", already exists!"
 assert (os.path.exists(os.path.dirname(args.output_file)) or os.path.dirname(args.output_file)==""), "Output file path: "+os.path.dirname(args.output_file)+", does not exist!"
+# GPUs
+assert (gpu_count > 0), "No GPUs detected!"
+assert (args.gpus <= gpu_count), "Requested "+args.gpus+" ,but only "+gpu_count+" are availible!"
+assert (args.gpus >= 1), "You have to use at least 1 GPU!"
 
 # model class name
 try:
@@ -54,6 +61,15 @@ assert (args.batch_size >= 1), "Batch size must be >= 1!"
 #convert outputs
 assert (args.convert_outputs_mode in (0,1)), "Convert outputs mode must be either 0 or 1!"
 
+#input images path
+print()
+print("**** params ****")
+for k in vars(args):
+    print(k,vars(args)[k])
+OBJECTNET_IMAGES_FOLDER = args.images
+print("****************")
+print()
+
 mapping_file = "mapping_files/imagenet_id_to_objectnet_id.json"
 with open(mapping_file,"r") as f:
     mapping = json.load(f)
@@ -61,7 +77,9 @@ with open(mapping_file,"r") as f:
     mapping = {int(k): v for k, v in mapping.items()}
 
 def load_model():
-    strategy = tf.distribute.MirroredStrategy()
+    devices = [f'/gpu:{i}' for i in range(args.gpus)]
+
+    strategy = tf.distribute.MirroredStrategy(devices=devices)
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
     with strategy.scope():
         architecture = getattr(model_description, MODEL_CLASS_NAME)
@@ -81,7 +99,9 @@ def evalModels():
     # Create a basic model instance
     output_predictions = []
 
-    data_iter = ObjectNetDataset(args.images, args.batch_size, transform=data_transform())
+    batches_per_device = args.batch_size #upper bound estimate of how much data will fit in GPU memory, tune this based ou GPU memory availible
+    batch_size = (batches_per_device*args.gpus)
+    data_iter = ObjectNetDataset(args.images, batch_size, transform=data_transform())
 
     for img_batch, filenames in data_iter:
         model = load_model()
