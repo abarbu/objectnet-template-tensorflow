@@ -121,7 +121,7 @@ _./input/answers/answers-test.json:_
 
 Before executing the example for the first time you must download the sample model as shown below:
 
-# Download the model:
+### Download the model:
 ```
 $ cd objectnet-template-tensorflow
 $ mkdir downloads
@@ -134,7 +134,7 @@ $ cd ..
 **Note:** The `downloads/` directory is used to store downloaded models so they only need to be downloaded once. If you want to use a model which is in `downloads/`, make sure to copy it to `model/` as shown in the second last line above. This way, `model/` can be kept with only one active model at once, and `downloads/` can be used as storage for all models.
 
 Use the following arguments to run `objectnet_eval.py` and test the example model:
-# Perform batch inference:
+### Perform batch inference:
 ```
 $ python3 objectnet_eval.py input/images output/predictions.csv DemoResNet50 model/resnet50_weights_tf_dim_ordering_tf_kernels.h5
 
