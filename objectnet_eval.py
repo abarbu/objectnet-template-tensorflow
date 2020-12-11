@@ -26,6 +26,8 @@ parser.add_argument('--batch_size', default=64, type=int, metavar='N',
                     help='mini-batch size (default: 64), this is the '
                          'batch size of each GPU on the current node when '
                          'using Data Parallel or Distributed Data Parallel')
+parser.add_argument('--softmax', default=True, type=bool, metavar='T/F',
+                    help="apply a softmax function to network outputs to convert output magnitudes to confidence values (default:True)")
 parser.add_argument('--convert_outputs_mode', default=1, type=int, metavar='N',
                     help="0: no conversion of prediction IDs, 1: convert from pytorch ImageNet prediction IDs to ObjectNet prediction IDs (default:1)")
 args = parser.parse_args()
@@ -109,6 +111,9 @@ def evalModels():
 
         prediction_confidence, prediction_class = tf.math.top_k(predictions, 5)
         
+        if args.softmax:
+            predictions = tf.keras.layers.Softmax(predictions)
+
         prediction_confidence = prediction_confidence.numpy()
         prediction_class = prediction_class.numpy()
 
