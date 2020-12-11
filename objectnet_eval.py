@@ -11,6 +11,7 @@ from objectnet_iterator import ObjectNetDataset
 from model.data_transform_description import data_transform
 
 gpu_count = len(tf.config.list_physical_devices('GPU'))
+cpu_count = len(tf.config.list_physical_devices('CPU'))
 parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
 parser.add_argument('images', metavar='images-dir',
                     help='path to dataset')
@@ -22,6 +23,8 @@ parser.add_argument('model_checkpoint', metavar='model-checkpoint',
                     help='path to model checkpoint')
 parser.add_argument('--gpus', default=gpu_count, type=int, metavar='N',
                     help='number of GPUs to use')
+parser.add_argument('--workers', default=cpu_count, type=int, metavar='N',
+                    help='number of data loading workers (default: total num CPUs)')
 parser.add_argument('--batch_size', default=64, type=int, metavar='N',
                     help='mini-batch size (default: 64), this is the '
                          'batch size of each GPU on the current node when '
@@ -57,6 +60,10 @@ except AttributeError as e:
 
 # model check point file
 assert (os.path.exists(args.model_checkpoint)), "Model checkpoint file: "+args.model_checkpoint+", does not exist!"
+
+# workers
+assert (args.workers <= cpu_count), "Number of workers: "+args.workers + ", should be <= the number of CPUs " + cpu_count+"!"
+assert (args.workers >= 1), "Number of workers must be >= 1!"
 
 # batch batch_size
 assert (args.batch_size >= 1), "Batch size must be >= 1!"
@@ -107,7 +114,7 @@ def evalModels():
 
     for img_batch, filenames in data_iter:
         model = load_model()
-        predictions = model.predict(img_batch, batch_size=args.batch_size)
+        predictions = model.predict(img_batch, batch_size=args.batch_size, workers=args.workers, use_multiprocessing=True)
 
         prediction_confidence, prediction_class = tf.math.top_k(predictions, 5)
         
