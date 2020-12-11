@@ -6,7 +6,7 @@ import glob
 import tensorflow as tf
 
 from tensorflow import keras
-from model.model_description import create_model
+import model.model_description
 from objectnet_iterator import ObjectNetDataset
 
 parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
@@ -14,6 +14,8 @@ parser.add_argument('images', metavar='images-dir',
                     help='path to dataset')
 parser.add_argument('output_file', metavar='output-file',
                     help='path to predictions output file')
+parser.add_argument('model_class_name', metavar='model-class-name',
+                    help='model class name in model_description.py')
 parser.add_argument('model_checkpoint', metavar='model-checkpoint',
                     help='path to model checkpoint')
 parser.add_argument('--batch_size', default=64, type=int, metavar='N',
@@ -27,12 +29,31 @@ args = parser.parse_args()
 assert (not os.path.exists(args.output_file)), "Output file: "+args.output_file+", already exists!"
 assert (os.path.exists(os.path.dirname(args.output_file)) or os.path.dirname(args.output_file)==""), "Output file path: "+os.path.dirname(args.output_file)+", does not exist!"
 
+# model class name
+try:
+    getattr(model.model_description, args.model_class_name)
+except AttributeError as e:
+    print("Module: " + args.model_class_name + ", can not be found in model_description.py!")
+    raise
+
+MODEL_CLASS_NAME = args.model_class_name
+
+try:
+    architecture = getattr(model.model_description, MODEL_CLASS_NAME)
+    architecture.create_model()
+except AttributeError as e:
+    print("Module: " + args.model_class_name + ", must implement create_model() method!")
+    raise
+
+# model check point file
+assert (os.path.exists(args.model_checkpoint)), "Model checkpoint file: "+args.model_checkpoint+", does not exist!"
+
 # batch batch_size
 assert (args.batch_size >= 1), "Batch size must be >= 1!"
 #convert outputs
 assert (args.convert_outputs_mode in (0,1)), "Convert outputs mode must be either 0 or 1!"
 
-mapping_file = "mapping_files/imagenet_pytorch_id_to_objectnet_id.json"
+mapping_file = "mapping_files/imagenet_id_to_objectnet_id.json"
 with open(mapping_file,"r") as f:
     mapping = json.load(f)
     # convert string keys to ints
@@ -42,10 +63,9 @@ def load_model():
     strategy = tf.distribute.MirroredStrategy()
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
     with strategy.scope():
-        model = create_model()
-        checkpoint_path = args.model_checkpoint
+        architecture = getattr(model.model_description, MODEL_CLASS_NAME)
+        model = architecture.create_model()
         model.load_weights(checkpoint_path)
-
         model.summary()
     return model
 
@@ -58,8 +78,6 @@ def evalModels():
               ]
     '''
     # Create a basic model instance
-    model = load_model()
-
     output_predictions = []
 
     data_iter = ObjectNetDataset(args.images, args.batch_size)
