@@ -8,6 +8,7 @@ import tensorflow as tf
 from tensorflow import keras
 from model import model_description
 from objectnet_iterator import ObjectNetDataset
+from model.data_transform_description import data_transform
 
 parser = argparse.ArgumentParser(description='Evaluate a PyTorch model on ObjectNet images and output predictions to a CSV file.')
 parser.add_argument('images', metavar='images-dir',
@@ -80,7 +81,7 @@ def evalModels():
     # Create a basic model instance
     output_predictions = []
 
-    data_iter = ObjectNetDataset(args.images, args.batch_size)
+    data_iter = ObjectNetDataset(args.images, args.batch_size, transform=data_transform())
 
     for img_batch, filenames in data_iter:
         model = load_model()

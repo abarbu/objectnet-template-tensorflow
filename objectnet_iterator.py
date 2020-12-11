@@ -3,40 +3,34 @@ import glob
 import numpy as np
 import math
 
-from tensorflow.keras.preprocessing.image import load_img
 from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.preprocessing.image import load_img
 from tensorflow import keras
 
 class ObjectNetDataset(keras.utils.Sequence):
-    def __init__(self, image_path, batch_size):
+    def __init__(self, image_path, batch_size, transform=None):
         self.filenames = glob.glob(image_path + "/*.png")
         self.batch_size = batch_size
+        self.transform = transform
 
     def __len__(self):
         return math.ceil(len(self.filenames) / self.batch_size)
 
     def __getitem__(self, idx):
-        batch_x = self.filenames[idx * self.batch_size:(idx + 1) * self.batch_size]
+        targets = self.filenames[idx * self.batch_size:(idx + 1) * self.batch_size]
 
         batch_img = []
-        for filename in batch_x:
+        for filename in targets:
             img = load_img(filename)
-
+            
+            #crop red border
             width, height = img.size
-
-            if width < height:
-                img = img.resize((224, int(height*(224/width))))
-            else:
-                img = img.resize((int(width*(224/height)), 224))
-
-            width, height = img.size
-            crop_width = max(width-224, 0)
-            crop_height = max(height-224, 0)
-            cropArea = (crop_width//2, crop_height//2, 224+crop_width//2, 224+crop_height//2)
-            img = img.crop(cropArea) 
+            cropArea = (2, 2, width-2, height-2)
+            img = img.crop(cropArea)
+            if self.transform is not None:
+                img = self.transform.transforms(img)
 
             img_np = img_to_array(img)
-
             batch_img.append(img_np)
         batch_img = np.stack(batch_img, axis=0)
-        return batch_img, batch_x
+        return batch_img, targets
