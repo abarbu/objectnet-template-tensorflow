@@ -112,8 +112,10 @@ def evalModels():
     batch_size = (batches_per_device*args.gpus)
     data_iter = ObjectNetDataset(args.images, batch_size, transform=data_transform())
 
+
+    model = load_model()
+
     for img_batch, filenames in data_iter:
-        model = load_model()
         predictions = model.predict(img_batch, batch_size=args.batch_size, workers=args.workers, use_multiprocessing=True)
 
         prediction_confidence, prediction_class = tf.math.top_k(predictions, 5)
