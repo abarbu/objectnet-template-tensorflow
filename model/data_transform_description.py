@@ -11,6 +11,7 @@ class data_transform:
         else:
             img = img.resize((int(width*(224/height)), 224))
 
+
         width, height = img.size
         crop_width = max(width-224, 0)
         crop_height = max(height-224, 0)
@@ -21,6 +22,4 @@ class data_transform:
 
         img_np = preprocess_input(img_np)
 
-        img = array_to_img(img_np)
-
-        return img
+        return img_np

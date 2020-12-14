@@ -28,9 +28,9 @@ class ObjectNetDataset(keras.utils.Sequence):
             cropArea = (2, 2, width-2, height-2)
             img = img.crop(cropArea)
             if self.transform is not None:
-                img = self.transform.transforms(img)
-
-            img_np = img_to_array(img)
+                img_np = self.transform.transforms(img)
+            else:
+                img_np = img_to_array(img)
             batch_img.append(img_np)
         batch_img = np.stack(batch_img, axis=0)
         return batch_img, targets
