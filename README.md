@@ -11,7 +11,7 @@ These instructions are split into two sections:
     2. plug your own model into this example and test on a local machine.
 - *Section 2* which describes how to create a docker image ready to submit to the challenge.
 
-# Section 2: ObjectNet competition example model and code
+# Section 1: ObjectNet competition example model and code
 
 The following section provides example code and a baseline model for the ObjectNet Challenge. The code is structured such that most existing TensorFlow models can be plugged into the example with minimal code changes necessary.
 
@@ -121,7 +121,7 @@ _./input/answers/answers-test.json:_
 
 Before executing the example for the first time you must download the sample model as shown below:
 
-# Download the model:
+### Download the model:
 ```
 $ cd objectnet-template-tensorflow
 $ mkdir downloads
@@ -134,7 +134,7 @@ $ cd ..
 **Note:** The `downloads/` directory is used to store downloaded models so they only need to be downloaded once. If you want to use a model which is in `downloads/`, make sure to copy it to `model/` as shown in the second last line above. This way, `model/` can be kept with only one active model at once, and `downloads/` can be used as storage for all models.
 
 Use the following arguments to run `objectnet_eval.py` and test the example model:
-# Perform batch inference:
+### Perform batch inference:
 ```
 $ python3 objectnet_eval.py input/images output/predictions.csv DemoResNet50 model/resnet50_weights_tf_dim_ordering_tf_kernels.h5
 
