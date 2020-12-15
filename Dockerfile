@@ -1,32 +1,16 @@
-# Build arguments to control base tensorflow image. Tensorflow build
-# tags for docker images can be found at:
-# https://hub.docker.com/r/tensorflow/tensorflow/tags
-#
-# From the command line (`docker build...`) use:
-#  --build-arg GPU: omit or "-gpu" to build a GPU enabled image,
-#                   or "" to build non GPU image.
-#  --build-arg TENSORFLOW_VERSION: omit to use "2.3.0", otherwise
-#                   specify version.
-#  Default is to use: tensorflow/tensorflow:2.3.0-gpu
-
-ARG GPU="-gpu"
-ARG TENSORFLOW_VERSION="2.3.0"
+ARG TENSORFLOW_VERSION 
 
 # Build based on official TensorFlow docker images available on docker hub:
 #   https://www.tensorflow.org/install/docker
 
-FROM tensorflow/tensorflow:${TENSORFLOW_VERSION}${GPU}
-
-# Need to redefine the ARGS here so we can print them out
-ARG GPU
-ARG TENSORFLOW_VERSION
+FROM tensorflow/tensorflow:${TENSORFLOW_VERSION}-gpu
 
 ARG MODEL_CHECKPOINT
 ARG MODEL_CLASS_NAME
 ENV MODEL_CLASS_NAME ${MODEL_CLASS_NAME}
 ENV MODEL_PATH "/workspace/model/"${MODEL_CHECKPOINT}
 
-RUN echo "Building from tensorflow image: tensorflow/tensorflow:$TENSORFLOW_VERSION$GPU"
+RUN echo "Building from tensorflow image: tensorflow/tensorflow:$TENSORFLOW_VERSION-gpu"
 RUN echo "Using pre-built model: $MODEL_PATH"
 
 # Add metadata

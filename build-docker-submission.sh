@@ -4,6 +4,7 @@ if [ "$0" != "./build-docker-submission.sh" ] && [ "$0" != "build-docker-submiss
   exit 1
 fi
  
+TF_VERSION="2.3.0"
 NAME=""
 CHECKPOINT=""
 IMAGE=""
@@ -17,15 +18,31 @@ while test $# -gt 0; do
       echo ""
       echo -e "\e[3mDefault\e[0m"
       echo "TAG=\"latest\""
+      echo "TENSORFLOW_VERSION=\"2.3.0\""
       echo ""
       echo "options:"
       echo "-h, --help				show brief help"
+      echo "-v, --tensorflow-version=TF_VERSION	specify a tensorflow version to use"
       echo "-n, --model-class-name=NAME		specify a model class name to use"
       echo "-c, --model-checkpoint=CHECKPOINT	specify the path to a model checkpoint to use"
       echo "-i, --image=IMAGE			specify your Docker image"
       echo "-t, --tag=TAG			specify your Docker image tag"
       echo "-nc, --no-cache			bypass cache for docker build"
       exit 0
+      ;;
+    -v)
+      shift
+      if test $# -gt 0; then
+        export TF_VERSION=$1
+      else
+        echo "Error: no tensorflow version specified"
+        exit 1
+      fi
+      shift
+      ;;
+    --tensorflow-version*)
+      export TF_VERSION=`echo $1 | sed -e 's/^[^=]*=//g'`
+      shift
       ;;
     -c)
       shift
@@ -122,11 +139,12 @@ echo "Model Class Name = $NAME"
 echo "Model Checkpoint = $CHECKPOINT"
 echo "Docker Image: $IMAGE:$TAG"
 echo "Cache: $CACHE"
+echo "TensorFlow Version: $TF_VERSION"
 echo ""
 
 CHECKPOINT_FILE="${CHECKPOINT##*/}"
 if [ "$CACHE" == true ]; then
- docker build --build-arg MODEL_CLASS_NAME="$NAME" --build-arg MODEL_CHECKPOINT="$CHECKPOINT_FILE" -t "$IMAGE:$TAG" -f Dockerfile .
+ docker build --build-arg TENSORFLOW_VERSION="$TF_VERSION" --build-arg MODEL_CLASS_NAME="$NAME" --build-arg MODEL_CHECKPOINT="$CHECKPOINT_FILE" -t "$IMAGE:$TAG" -f Dockerfile .
 else
- docker build --no-cache --build-arg MODEL_CLASS_NAME="$NAME" --build-arg MODEL_CHECKPOINT="$CHECKPOINT_FILE" -t "$IMAGE:$TAG" -f Dockerfile .
+ docker build --no-cache --build-arg TENSORFLOW_VERSION="$TF_VERSION" --build-arg MODEL_CLASS_NAME="$NAME" --build-arg MODEL_CHECKPOINT="$CHECKPOINT_FILE" -t "$IMAGE:$TAG" -f Dockerfile .
 fi
