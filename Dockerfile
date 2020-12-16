@@ -1,4 +1,4 @@
-ARG TENSORFLOW_VERSION 
+ARG TENSORFLOW_VERSION
 
 # Build based on official TensorFlow docker images available on docker hub:
 #   https://www.tensorflow.org/install/docker
